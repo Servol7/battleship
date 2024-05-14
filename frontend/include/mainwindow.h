@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fieldwidget.h"
+#include "clock.h"
 
 #include <QLabel>
 #include <QMainWindow>
@@ -8,6 +9,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QComboBox>
 
 #include "game.h"
 
@@ -21,6 +23,9 @@ public:
 
 private slots:
     void RestartClicked();
+    void SaveClicked();
+    void LoadClicked();
+    void LockDifficulty();
 
 private:
     FieldWidget *field1_;
@@ -29,6 +34,11 @@ private:
     QVBoxLayout *buttonLayout_;
     QPushButton *restartButton_;
     QWidget *centralWidget_;
+    QComboBox* difficultyComboBox_;
+    Clock* clock_;
+    void SetupDifficultyComboBox();
+    void LockDifficultySelection();
+    void UnlockDifficultySelection();
 
     Game *game_;
 };

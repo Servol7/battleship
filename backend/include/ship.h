@@ -16,6 +16,8 @@ public:
     bool GetOrientation() const;
     void AddHit();
     bool CheckDead() const;
+    void SetHits(size_t hits);
+    size_t GetHits() const;
 
 private:
     size_t size_;

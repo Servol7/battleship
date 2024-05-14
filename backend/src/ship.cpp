@@ -59,3 +59,17 @@ void Ship::AddHit() {
 bool Ship::CheckDead() const {
     return hits_ == size_;
 }
+
+/**
+ * \brief Установка количества попаданий по кораблю
+*/
+void Ship::SetHits(size_t hits) {
+    hits_ = hits;
+}
+
+/**
+ * \brief Получение количества попаданий по кораблю
+*/
+size_t Ship::GetHits() const {
+    return hits_;
+}

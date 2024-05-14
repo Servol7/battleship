@@ -126,6 +126,24 @@ bool Field::CheckDead() const {
 }
 
 /**
+ * \brief Проверка клетки на промах
+*/
+bool Field::CheckMiss(int x, int y) const {
+    if (0 > x || x >= FIELD_SIZE || 0 > y || y >= FIELD_SIZE) return 0;
+    if (hit_.count(std::make_pair(x, y)) && !recentHits_.count(std::make_pair(x, y))) return 0;
+    return 1;
+}
+
+/**
+ * \brief Проверка клетки на наличие выстрела
+*/
+bool Field::CheckCell(int x, int y) const {
+    if (0 > x || x >= FIELD_SIZE || 0 > y || y >= FIELD_SIZE) return 0;
+    if (hit_.count(std::make_pair(x, y))) return 0;
+    return 1;
+}
+
+/**
  * \brief Функция атаки ячейки
  * \details Атакует ячейку с выбранными координатами. Если в этот момент был уничитожен корабль, то обстреливает территорию вокруг него. Выводит значение о промахе или попадании в корабль
 */
@@ -150,23 +168,29 @@ int Field::MakeHit(int x, int y) {
             }
         }
 
-        if (hit && ship.CheckDead()) {
-            ++dead_;
-            if (ship.GetOrientation()) {
-                for (int i = (int) ship.GetX() - 1; i <= (int) ship.GetX() + (int) ship.GetSize(); ++i) {
-                    for (int j = (int) ship.GetY() - 1; j <= (int) ship.GetY() + 1; ++j) {
-                        MakeHit(i, j);
-                    }
+        if (hit){
+            recentHits_.insert({x, y});
+            if (ship.CheckDead()) {
+                ++dead_;
+                for (size_t i = 0; i < ship.GetSize(); ++i) {
+                    size_t hitX = ship.GetX() + (ship.GetOrientation() ? i : 0);
+                    size_t hitY = ship.GetY() + (ship.GetOrientation() ? 0 : i);
+                    recentHits_.erase({hitX, hitY});
                 }
-            } else {
-                for (int i = (int) ship.GetX() - 1; i <= (int) ship.GetX() + 1; ++i) {
-                    for (int j = (int) ship.GetY() - 1; j <= (int) ship.GetY() + (int) ship.GetSize(); ++j) {
-                        MakeHit(i, j);
+                if (ship.GetOrientation()) {
+                    for (int i = (int) ship.GetX() - 1; i <= (int) ship.GetX() + (int) ship.GetSize(); ++i) {
+                        for (int j = (int) ship.GetY() - 1; j <= (int) ship.GetY() + 1; ++j) {
+                            MakeHit(i, j);
+                        }
+                    }
+                } else {
+                    for (int i = (int) ship.GetX() - 1; i <= (int) ship.GetX() + 1; ++i) {
+                        for (int j = (int) ship.GetY() - 1; j <= (int) ship.GetY() + (int) ship.GetSize(); ++j) {
+                            MakeHit(i, j);
+                        }
                     }
                 }
             }
-        }
-        if (hit) {
             return 2;
         }
     }
@@ -200,4 +224,44 @@ std::vector<std::string> Field::Prepare(bool hide) const {
         }
     }
     return f;
+}
+
+/**
+ * \brief Функция сохранения поля
+ * \details Выводит всю информацию о кораблях и выстрелах
+*/
+void Field::Save(std::ostream& out) const {
+    out << ships_.size() << " " << hit_.size() << " " << dead_ << "\n";
+    for (const auto& ship : ships_) {
+        out << ship.GetSize() << " " << ship.GetX() << " " << ship.GetY() << " " << ship.GetOrientation() << " " << ship.GetHits() << "\n";
+    }
+    for (const auto& hit : hit_) {
+        out << hit.first << " " << hit.second << "\n";
+    }
+}
+
+/**
+ * \brief Функция загрузки сохранения поля
+ * \details Считывает всю информацию о кораблях и выстрелах
+*/
+void Field::Load(std::istream& in) {
+    size_t numShips, numHits;
+    in >> numShips >> numHits >> dead_;
+    ships_.clear();
+    hit_.clear();
+
+    for (size_t i = 0; i < numShips; ++i) {
+        size_t size, x, y, hits;
+        bool orientation;
+        in >> size >> x >> y >> orientation >> hits;
+        Ship ship(size, x, y, orientation);
+        ship.SetHits(hits);  // Нужно добавить метод SetHits в класс Ship
+        ships_.push_back(ship);
+    }
+
+    for (size_t i = 0; i < numHits; ++i) {
+        size_t x, y;
+        in >> x >> y;
+        hit_.insert({x, y});
+    }
 }

@@ -5,8 +5,8 @@
 /**
  * \brief Конструктор сетки поля
 */
-FieldWidget::FieldWidget(Game *game, size_t player, bool hide, QLabel* status, QWidget *parent)
-    : QTableWidget(parent), game_(game), player_(player), hide_(hide), status_(status) {
+FieldWidget::FieldWidget(Game *game, size_t player, bool hide, QLabel* status, Clock *clock, QWidget *parent)
+    : QTableWidget(parent), game_(game), player_(player), hide_(hide), status_(status), clock_(clock) {
     setRowCount(10);
     setColumnCount(10);
 
@@ -29,7 +29,7 @@ FieldWidget::FieldWidget(Game *game, size_t player, bool hide, QLabel* status, Q
 }
 
 /**
- * \brief Деструктор сетки поля
+ * \brief Функция вызова апдейта поля
 */
 void FieldWidget::UpdateGame(Game* game) {
     game_ = game;
@@ -73,6 +73,7 @@ void FieldWidget::Update() {
 */
 void FieldWidget::CellClicked(size_t x, size_t y) {
     if (player_ == 0) return;
+    clock_->Reset();
     game_->MakeMove1(x, y);
     clearSelection();
     Update();
@@ -83,4 +84,5 @@ void FieldWidget::CellClicked(size_t x, size_t y) {
     if (game_->Win(1)) {
         status_->setText("You lose");
     }
+    emit difficultyChangeRequested();
 }
